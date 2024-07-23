@@ -1,56 +1,21 @@
-const quotes = [
-    {
-        text: "The only way to do great work is to love what you do.",
-        category: "Motivational"
-    },
-    {
-        text: "In three words I can sum up everything I've learned about life: it goes on.",
-        category: "Life"
-    },
-    {
-        text: "Success is not final, failure is not fatal: It is the courage to continue that counts.",
-        category: "Success"
-    },
-    {
-        text: "The greatest glory in living lies not in never falling, but in rising every time we fall.",
-        category: "Inspirational"
-    },
-    {
-        text: "Life is what happens when you're busy making other plans.",
-        category: "Life"
-    },
-    {
-        text: "Believe you can and you're halfway there.",
-        category: "Motivational"
-    },
-    {
-        text: "The only limit to our realization of tomorrow will be our doubts of today.",
-        category: "Inspirational"
-    },
-    {
-        text: "Your time is limited, so don't waste it living someone else's life.",
-        category: "Life"
-    },
-    {
-        text: "Strive not to be a success, but rather to be of value.",
-        category: "Success"
-    },
-    {
-        text: "It does not matter how slowly you go as long as you do not stop.",
-        category: "Motivational"
-    }
-]
+// Load existing quotes.
+const quotes = JSON.parse(localStorage.getItem("quotes") || "[]");
 
 function showRandomQuote(event) {
     // random index between 0 and "quotes" length
     const randomIdx = Math.floor(Math.random() * quotes.length);
 
-    const randomQuote = quotes[randomIdx].text;
+    const randomQuote = quotes[randomIdx];
 
     // Show the quote if the event started by clicking
-    // the "Show New Quote" button.
-    if (event.target.id === "newQuote") {
-        document.getElementById("quoteDisplay").innerHTML = `<p> ${randomQuote} </p>`;
+    // the "Show New Quote" button, and there is a quote
+    if (event.target.id === "newQuote"
+        && randomQuote ) {
+        document.getElementById("quoteDisplay").innerHTML = `<p> ${randomQuote.text} </p>`;
+
+        // Store this quote as the latest viewed quote
+        // in session stroage
+        sessionStorage.setItem("lastViewedQuote", JSON.stringify(randomQuote))
     }
 }
 
@@ -65,10 +30,51 @@ function addQuote() {
         category: newQuoteCategory
     })
 
-    console.log(quotes[quotes.length-1])
+    // Empty inputs value
+    document.getElementById("newQuoteText").value = ""
+    document.getElementById("newQuoteCategory").value = "";
+
+    // Update "quotes" in localStorage
+    localStorage.setItem("quotes", JSON.stringify(quotes));
+}
+
+function handleExportToJson() {
+    const quotes =
+      JSON.parse(localStorage.getItem("quotes") || "[]")
+      .map(quote => quote.text + " / ");
+
+    if (!quotes.length) {
+        alert("No quotes found! try adding some quotes.");
+        return
+    }
+
+    const blob = new Blob(quotes, {type: "text/plain"})
+    const url = URL.createObjectURL(blob, {type: "text/plain;charset=UTF-8"})
+
+    let link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', "quotes.txt");
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+}
+
+function importFromJsonFile(event) {
+    const fileReader = new FileReader();
+    fileReader.onload = function(event) {
+      const importedQuotes = JSON.parse(event.target.result);
+      quotes.push(...importedQuotes);
+      localStorage.setItem("quotes", JSON.stringify(quotes))
+      alert('Quotes imported successfully!');
+    };
+    fileReader.readAsText(event.target.files[0]);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
     const newQuoteBtn = document.getElementById("newQuote");
-    newQuoteBtn.addEventListener("click", showRandomQuote)
+    const exportToJSONBtn = document.getElementById("exportToJSON");
+
+    newQuoteBtn.addEventListener("click", showRandomQuote);
+    exportToJSONBtn.addEventListener("click", handleExportToJson);
 })
