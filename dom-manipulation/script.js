@@ -127,7 +127,7 @@ function importFromJsonFile(event) {
 
       // Populate the dropdown with options
       // after the user imports quotes.
-      populateCategoryDropdown(quotes);
+      populateCategories(quotes);
 
       // Show all quotes because,
       // the "select quote" default value is "all".
@@ -136,7 +136,7 @@ function importFromJsonFile(event) {
     fileReader.readAsText(event.target.files[0]);
 }
 
-function populateCategoryDropdown(quotes) {
+function populateCategories(quotes) {
     const uniqueCategories = new Set(
         quotes.map(quote => quote.category)
     )
@@ -210,7 +210,7 @@ window.addEventListener("DOMContentLoaded", () => {
     exportToJSONBtn.addEventListener("click", exportToJsonFile);
 
     // Add category options
-    populateCategoryDropdown(quotes);
+    populateCategories(quotes);
 
     // Restore and aave last selected filter before filtering quotes
     restoreAndSaveLastSelectedFilter()
