@@ -2,7 +2,7 @@
 const quotes = JSON.parse(localStorage.getItem("quotes") || "[]");
 
 function showRandomQuote(event) {
-    // random index between 0 and "quotes" length
+    // Random index between 0 and "quotes" length
     const randomIdx = Math.floor(Math.random() * quotes.length);
 
     const randomQuote = quotes[randomIdx];
@@ -21,9 +21,19 @@ function showRandomQuote(event) {
 
 function addQuote() {
     const newQuoteText =
-      document.getElementById("newQuoteText").value;
+      document.getElementById("newQuoteText").value.trim();
     const newQuoteCategory =
-      document.getElementById("newQuoteCategory").value;
+      document.getElementById("newQuoteCategory").value.trim();
+
+    if (!newQuoteText.length) {
+        alert("You forgot to you add a quote!")
+        return
+    }
+
+    if(!newQuoteCategory.length) {
+        alert("You forgot to you specify a category!")
+        return
+    }
 
     quotes.push({
         text: newQuoteText,
@@ -36,6 +46,48 @@ function addQuote() {
 
     // Update "quotes" in localStorage
     localStorage.setItem("quotes", JSON.stringify(quotes));
+
+    // Update the categories in the dropdown if a new category is introduced.
+    const uniqueExistingCategories =
+      new Set(quotes.map(quote => quote.category));
+
+    // Remove the new category from the set because
+    // it's been added in the quotes array in line 38.
+    uniqueExistingCategories.delete(newQuoteCategory);
+
+    if (!uniqueExistingCategories
+        .has(newQuoteCategory)) {
+            const option = document.createElement("option");
+            option.setAttribute("value", newQuoteCategory);
+            option.textContent = newQuoteCategory;
+
+            // Add option to the filter
+            categoryFilter.appendChild(option)
+    }
+
+    const lastSelectedFilter = localStorage.getItem("lastSelectedFilter");
+    // Show this new quote in the table if:
+    // 1- the lastSelectedFilter is "all" or
+    // 2- the lastSelectedFilter is the same as the newCategory
+    if (
+        lastSelectedFilter === "all" ||
+        lastSelectedFilter === newQuoteCategory
+    ) {
+        const quotesTableBody = document.querySelector("#quotesTable > tbody");
+
+        const tableRow = document.createElement("tr");
+        const quoteTextElement = document.createElement("td");
+        quoteTextElement.textContent = newQuoteText;
+
+        const quoteCategoryElement = document.createElement("td");
+        quoteCategoryElement.textContent = newQuoteCategory;
+
+        tableRow.appendChild(quoteTextElement);
+        tableRow.appendChild(quoteCategoryElement);
+
+        // Add table row to the table body
+        quotesTableBody.appendChild(tableRow);
+    }
 }
 
 function handleExportToJson() {
@@ -67,8 +119,82 @@ function importFromJsonFile(event) {
       quotes.push(...importedQuotes);
       localStorage.setItem("quotes", JSON.stringify(quotes))
       alert('Quotes imported successfully!');
+
+      // Populate the dropdown with options
+      // after the user imports quotes.
+      populateCategoryDropdown(quotes);
+
+      // Show all quotes because,
+      // the "select quote" default value is "all".
+      filterQuotes()
     };
     fileReader.readAsText(event.target.files[0]);
+}
+
+function populateCategoryDropdown(quotes) {
+    const uniqueCategories = new Set(
+        quotes.map(quote => quote.category)
+    )
+
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    uniqueCategories.forEach(category => {
+        const option = document.createElement("option");
+        option.setAttribute("value", category);
+        option.textContent = category;
+
+        // Add option to the filter
+        categoryFilter.appendChild(option)
+    })
+}
+
+function filterQuotes() {
+    const categoryFilter = document.getElementById("categoryFilter");
+    const selectedCategory = categoryFilter.value;
+
+    const quotesTableBody = document.querySelector("#quotesTable > tbody");
+    // Empty body of the table.
+    quotesTableBody.innerHTML = "";
+
+    quotes.forEach(quote => {
+        // Do nothing if
+        // 1- the current category is not the same
+        // as the selected category.
+        // AND
+        // 2- the selected category is not of value "all".
+        if (quote.category !== selectedCategory
+            && selectedCategory !== "all") {
+            return
+        }
+
+        const tableRow = document.createElement("tr");
+        const quoteTextElement = document.createElement("td");
+        quoteTextElement.textContent = quote.text;
+
+        const quoteCategoryElement = document.createElement("td");
+        quoteCategoryElement.textContent = quote.category;
+
+        tableRow.appendChild(quoteTextElement);
+        tableRow.appendChild(quoteCategoryElement);
+
+        // Add table row to the table body
+        quotesTableBody.appendChild(tableRow);
+    })
+
+    // Save latest selected filter
+    localStorage.setItem("lastSelectedFilter", selectedCategory)
+}
+
+function restoreAndSaveLastSelectedFilter() {
+    const lastSelectedFilter = localStorage.getItem("lastSelectedFilter");
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    if (lastSelectedFilter) {
+        categoryFilter.value = lastSelectedFilter
+    } else {
+        categoryFilter.value = "all";
+        localStorage.setItem("lastSelectedFilter", "all")
+    }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -77,4 +203,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
     newQuoteBtn.addEventListener("click", showRandomQuote);
     exportToJSONBtn.addEventListener("click", handleExportToJson);
+
+    // Add category options
+    populateCategoryDropdown(quotes);
+
+
+    // Restore and aave last selected filter before filtering quotes
+    restoreAndSaveLastSelectedFilter()
+
+    // At first show all quotes because,
+    // the "select quote" default value is "all".
+    filterQuotes()
 })
