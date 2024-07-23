@@ -94,22 +94,23 @@ function addQuote() {
     }
 }
 
-function handleExportToJson() {
-    const quotes =
-      JSON.parse(localStorage.getItem("quotes") || "[]")
-      .map(quote => quote.text + " / ");
+function  exportToJsonFile() {
+    const quotes = JSON.parse(localStorage.getItem("quotes") || "[]");
 
     if (!quotes.length) {
         alert("No quotes found! try adding some quotes.");
         return
     }
 
-    const blob = new Blob(quotes, {type: "text/plain"})
-    const url = URL.createObjectURL(blob, {type: "text/plain;charset=UTF-8"})
+    // Convert the array of objects to a JSON string
+    const jsonString = JSON.stringify(quotes, null, 2);
+
+    const blob = new Blob([jsonString], {type: "application/json"})
+    const url = URL.createObjectURL(blob, {type: "application/json"})
 
     let link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', "quotes.txt");
+    link.setAttribute('download', "quotes.json");
     document.body.appendChild(link);
     link.click();
 
@@ -206,11 +207,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const exportToJSONBtn = document.getElementById("exportToJSON");
 
     newQuoteBtn.addEventListener("click", showRandomQuote);
-    exportToJSONBtn.addEventListener("click", handleExportToJson);
+    exportToJSONBtn.addEventListener("click", exportToJsonFile);
 
     // Add category options
     populateCategoryDropdown(quotes);
-
 
     // Restore and aave last selected filter before filtering quotes
     restoreAndSaveLastSelectedFilter()
