@@ -11,12 +11,16 @@ function showRandomQuote(event) {
     // the "Show New Quote" button, and there is a quote
     if (event.target.id === "newQuote"
         && randomQuote ) {
-        document.getElementById("quoteDisplay").innerHTML = `<p> ${randomQuote.text} </p>`;
-
-        // Store this quote as the latest viewed quote
-        // in session stroage
-        sessionStorage.setItem("lastViewedQuote", JSON.stringify(randomQuote))
+            createAddQuoteForm(randomQuote);
     }
+}
+
+function createAddQuoteForm(quote) {
+    document.getElementById("quoteDisplay").innerHTML = `<p> ${quote.text} </p>`;
+
+    // Store this quote as the latest viewed quote
+    // in session stroage
+    sessionStorage.setItem("lastViewedQuote", JSON.stringify(randomQuote))
 }
 
 function addQuote() {
