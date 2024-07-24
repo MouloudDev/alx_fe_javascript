@@ -204,9 +204,9 @@ function restoreAndSaveLastSelectedFilter() {
 
 async function fetchQuotesFromServer() {
     try {
-        const response = await fetch("https://type.fit/api/quotes");
-        const quotes = await response.json();
-        return quotes
+        const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+        const posts = await response.json();
+        return posts
     } catch(error) {
         console.error("Error fetching data:", error)
     }
@@ -228,26 +228,6 @@ window.addEventListener("DOMContentLoaded", () => {
     // At first show all quotes because,
     // the "select quote" default value is "all".
     filterQuotes()
-
-    setInterval(async () => {
-        const _quotes = await fetchQuotesFromServer();
-        quotes.splice(0, 6)
-        quotes.push(
-            ..._quotes
-              .slice(0, Math.floor(Math.random() * (_quotes.length -4)))
-              .map(quote => { return {...quote, category: "Inspirational"}})
-        );
-
-        // Empty dropdown categories and quotes in the table.
-        document.getElementById("categoryFilter")
-          .innerHTML = `<option value="all">All Categories</option>`;
-        document.querySelector("#quotesTable > tbody")
-          .innerHTML = null
-
-        populateCategories(quotes);
-        restoreAndSaveLastSelectedFilter();
-        filterQuotes()
-    }, 3000)
 
     fetchQuotesFromServer();
 })
