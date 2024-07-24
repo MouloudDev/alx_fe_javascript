@@ -212,6 +212,28 @@ async function fetchQuotesFromServer() {
     }
 }
 
+async function postData() {
+    const url = "https://jsonplaceholder.typicode.com/posts";
+    const options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            title: "Work",
+            body: "The only way to do great work is to love what you do.",
+            category: "Motivational"
+        })
+    }
+
+    try {
+        const response = await fetch(url, options)
+        const data = await response.json();
+    } catch(error) {
+        console.error("Error posting data:", error)
+    }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
     const newQuoteBtn = document.getElementById("newQuote");
     const exportToJSONBtn = document.getElementById("exportToJSON");
@@ -230,4 +252,7 @@ window.addEventListener("DOMContentLoaded", () => {
     filterQuotes()
 
     fetchQuotesFromServer();
+
+    //
+    postData()
 })
