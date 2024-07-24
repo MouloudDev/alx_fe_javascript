@@ -238,9 +238,54 @@ async function postData() {
 function syncQuotes() {
     setInterval(async () => {
         const posts = await fetchQuotesFromServer();
+
+        const randomIdx = Math.floor(Math.random() * 10 );
+        // Format quotes.
+        const randomQuotes = posts
+          .slice(randomIdx, randomIdx*2)
+          .map(post => {
+            return {
+                text: post.body,
+                category: post.title.slice(0, 7),
+            }
+        })
+
         // Update quotes in localStorage.
-        localStorage.setItem("quotes", JSON.stringify(posts))
-    }, 1000)
+        localStorage.setItem("quotes", JSON.stringify(randomQuotes));
+
+        // Notify the user.
+        document.getElementById("notificationMsg")
+          .textContent = "Quotes synced with server!";
+
+        // Wait for 1 second;
+        await new Promise((res) => setTimeout(res, 1000));
+
+        // Remvoe the notification msg.
+        document.getElementById("notificationMsg")
+          .textContent = "";
+
+
+        // Empty dropdown categories and quotes in the table.
+        document.getElementById("categoryFilter")
+          .innerHTML = `<option value="all">All Categories</option>`;
+        document.querySelector("#quotesTable > tbody")
+          .innerHTML = null
+
+        // Add category options
+        populateCategories(randomQuotes);
+
+        // Restore and aave last selected filter before filtering quotes
+        restoreAndSaveLastSelectedFilter()
+
+        // Update the quotes with the latest fetched data from the server.
+        quotes.splice(0, quotes.length)
+        quotes.push(...randomQuotes);
+
+        // Filter Quotes and show them.
+        filterQuotes()
+
+        //////////////////////////////////////////////////////////////////////
+    }, 4000)
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -260,8 +305,9 @@ window.addEventListener("DOMContentLoaded", () => {
     // the "select quote" default value is "all".
     filterQuotes()
 
-    fetchQuotesFromServer();
-
-    //
+    // Post data to the server.
     postData()
+
+    // Periodically fetch data and update the local storage accordingly.
+    syncQuotes();
 })
