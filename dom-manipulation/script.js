@@ -229,9 +229,18 @@ async function postData() {
     try {
         const response = await fetch(url, options)
         const data = await response.json();
+        console.log("data after posting =====>", data)
     } catch(error) {
         console.error("Error posting data:", error)
     }
+}
+
+function syncQuotes() {
+    setInterval(async () => {
+        const posts = await fetchQuotesFromServer();
+        // Update quotes in localStorage.
+        localStorage.setItem("quotes", JSON.stringify(posts))
+    }, 1000)
 }
 
 window.addEventListener("DOMContentLoaded", () => {
